@@ -15,6 +15,7 @@ package proto
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 	"sort"
 
@@ -230,7 +231,11 @@ func (m *Message) Decode(r *util.BufferReader) error {
 	if datas, err = r.ReadFull(4); err != nil {
 		return err
 	}
-	if datas, err = r.ReadFull(int(binary.BigEndian.Uint32(datas))); err != nil {
+	datasLength := int(binary.BigEndian.Uint32(datas))
+	if datasLength > 10*util.MB {
+		return errors.New("message too large")
+	}
+	if datas, err = r.ReadFull(datasLength); err != nil {
 		return err
 	}
 
